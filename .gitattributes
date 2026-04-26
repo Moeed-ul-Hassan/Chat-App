@@ -1,0 +1,5 @@
+# Frontend folder ko secondary consider karwane ke liye
+frontend/* linguist-vendored
+
+# Go files ko explicit priority dene ke liye
+backend/*.go linguist-detectable=true

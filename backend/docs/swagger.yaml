@@ -1,0 +1,744 @@
+basePath: /
+definitions:
+  api.ErrorResponse:
+    properties:
+      code:
+        type: string
+      details:
+        additionalProperties: {}
+        type: object
+      message:
+        type: string
+      request_id:
+        type: string
+    type: object
+  chat.Message:
+    properties:
+      channel_id:
+        type: string
+      content:
+        type: string
+      conversation_id:
+        type: string
+      created_at:
+        type: string
+      deleted_for_user:
+        items:
+          type: string
+        type: array
+      display_name:
+        type: string
+      edited_at:
+        type: string
+      file_name:
+        type: string
+      id:
+        type: string
+      is_unsent:
+        description: Instagram "Unsend" feature
+        type: boolean
+      reactions:
+        items:
+          $ref: '#/definitions/chat.Reaction'
+        type: array
+      room_id:
+        type: string
+      seen_at:
+        type: string
+      status:
+        description: pending, sent, delivered, seen
+        type: string
+      type:
+        description: text, image, voice, reaction
+        type: string
+      user_id:
+        type: string
+      username:
+        description: Hydrated fields (not stored in message document)
+        type: string
+      voice_meta:
+        $ref: '#/definitions/chat.VoiceMeta'
+    type: object
+  chat.Reaction:
+    properties:
+      type:
+        description: e.g. "heart"
+        type: string
+      user_id:
+        type: string
+    type: object
+  chat.VoiceMeta:
+    properties:
+      duration:
+        description: in seconds
+        type: number
+      url:
+        type: string
+    type: object
+  room.Room:
+    properties:
+      aes_key:
+        description: E2EE Master Key (encrypted or base64)
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      invite_only:
+        type: boolean
+      name:
+        type: string
+      owner_id:
+        type: string
+      require_2fa:
+        type: boolean
+      room_id:
+        description: Human-readable ID (e.g. "Echo-1234")
+        type: string
+      ttl_hours:
+        type: integer
+    type: object
+  story.Story:
+    properties:
+      created_at:
+        type: string
+      expires_at:
+        description: Set to CreatedAt + 24h
+        type: string
+      id:
+        type: string
+      media_type:
+        description: image, video
+        type: string
+      media_url:
+        type: string
+      user_id:
+        type: string
+      viewers:
+        description: Users who swiped up/viewed
+        items:
+          $ref: '#/definitions/story.Viewer'
+        type: array
+    type: object
+  story.Viewer:
+    properties:
+      user_id:
+        type: string
+      viewed_at:
+        type: string
+    type: object
+  user.User:
+    properties:
+      bio:
+        description: Short bio or status
+        type: string
+      clerk_id:
+        description: Link to Clerk user
+        type: string
+      country:
+        description: Country detected via IP
+        type: string
+      created_at:
+        description: Creation timestamp
+        type: string
+      email:
+        description: Verified email address
+        type: string
+      id:
+        description: Unique UUID string
+        type: string
+      is_admin:
+        description: Admin flag
+        type: boolean
+      is_verified:
+        description: Has user verified email?
+        type: boolean
+      last_seen:
+        description: Last interaction timestamp
+        type: string
+      name:
+        description: Full display name
+        type: string
+      status:
+        description: Current status message
+        type: string
+      username:
+        description: Human-readable handle
+        type: string
+    type: object
+host: localhost:8001
+info:
+  contact:
+    email: moeed@example.com
+    name: Moeed-ul-Hassan
+    url: http://www.moeed.me
+  description: This is the professional backend API for the Echo messaging platform.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Echo Messenger API
+  version: "1.0"
+paths:
+  /api/chat/channels/{channelID}/messages:
+    get:
+      description: Returns channel message history ordered oldest-first.
+      parameters:
+      - description: Channel ID
+        in: path
+        name: channelID
+        required: true
+        type: string
+      - description: Max messages (1-200)
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chat.Message'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get channel messages
+      tags:
+      - chat
+  /api/chat/conversations:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: List conversations
+      tags:
+      - chat
+  /api/chat/conversations/{conversationID}/accept:
+    post:
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: conversationID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Accept conversation request
+      tags:
+      - chat
+  /api/chat/conversations/{conversationID}/messages:
+    get:
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: conversationID
+        required: true
+        type: string
+      - description: Max messages (1-200)
+        in: query
+        name: limit
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/chat.Message'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get DM messages
+      tags:
+      - chat
+  /api/chat/conversations/start:
+    post:
+      parameters:
+      - description: target_username
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Start conversation
+      tags:
+      - chat
+  /api/chat/messages/{id}:
+    delete:
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Room/channel ID for realtime broadcast
+        in: query
+        name: room
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.Message'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a message
+      tags:
+      - chat
+    put:
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: content + room
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.Message'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Edit a message
+      tags:
+      - chat
+  /api/rooms/:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: name, passkey, aes_key
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/room.Room'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create private room
+      tags:
+      - rooms
+  /api/rooms/{roomID}:
+    get:
+      parameters:
+      - description: Room ID
+        in: path
+        name: roomID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get room metadata
+      tags:
+      - rooms
+  /api/rooms/join:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: room_id, passkey
+        in: body
+        name: body
+        required: true
+        schema:
+          additionalProperties:
+            type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Join private room
+      tags:
+      - rooms
+  /api/stories/:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/story.Story'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: List active stories
+      tags:
+      - stories
+    post:
+      consumes:
+      - application/json
+      - multipart/form-data
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/story.Story'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create story
+      tags:
+      - stories
+  /api/stories/{storyID}/view:
+    post:
+      parameters:
+      - description: Story ID
+        in: path
+        name: storyID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: boolean
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Mark story viewed
+      tags:
+      - stories
+  /api/stories/{storyID}/viewers:
+    get:
+      parameters:
+      - description: Story ID
+        in: path
+        name: storyID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/story.Viewer'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get story viewers
+      tags:
+      - stories
+  /api/user/me:
+    get:
+      description: Returns the full profile of the authenticated user based on their
+        PASETO token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.User'
+      security:
+      - ApiKeyAuth: []
+      summary: Get 'Me' Profile
+      tags:
+      - User
+  /api/user/search:
+    get:
+      description: Finds a public profile of another user by their @handle.
+      parameters:
+      - description: User handle to search for
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Search User by Username
+      tags:
+      - User
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

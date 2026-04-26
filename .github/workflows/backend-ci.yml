@@ -1,0 +1,46 @@
+name: backend-ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+
+      - name: Verify formatting
+        run: |
+          unformatted=$(gofmt -l $(find . -name '*.go'))
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted files:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: go test ./...
+
+      - name: Run race tests
+        run: go test -race ./...
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Verify Swagger is up to date
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          swag init -g cmd/server/main.go -o docs
+          git diff --exit-code docs || (echo "Swagger docs are out of date. Regenerate with swag init." && exit 1)
