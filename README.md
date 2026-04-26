@@ -179,7 +179,7 @@ RESEND_FROM_EMAIL=                 # Sender address (e.g. no-reply@yourdomain.co
 
 ```bash
 cd backend
-go run ./cmd/server
+go run ./cmd/server/main.go
 ```
 
 The server starts on the port defined in `PORT` (default `:8001`).
@@ -218,7 +218,7 @@ cd backend
 go test ./...
 ```
 
-Tests currently exist in `features/auth/` and `features/user/`. Integration test coverage is a known gap — see [Roadmap](#roadmap).
+Tests currently only exist in `features/auth/` and `features/user/`. Integration test coverage is a known gap — see [Roadmap](#roadmap).
 
 ### Formatting
 
