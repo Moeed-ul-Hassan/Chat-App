@@ -8,7 +8,7 @@
 [![Swagger](https://img.shields.io/badge/Docs-Swagger-85EA2D?style=flat&logo=swagger)](https://swagger.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-Echo backend powers JWT-protected REST endpoints, real-time WebSocket messaging, and persistent storage for users, conversations, rooms, and stories. It integrates Clerk for auth, MongoDB for persistence, and optionally Redis for caching — all exposed through self-documenting Swagger endpoints.
+Echo backend powers JWT-protected REST endpoints, real-time WebSocket messaging, and persistent storage for users, conversations, rooms, and stories. It integrates Clerk for auth, MongoDB for persistence, and optionally Redis for caching, all exposed through self-documenting Swagger endpoints.
 
 ---
 
